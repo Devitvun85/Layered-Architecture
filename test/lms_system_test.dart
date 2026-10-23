@@ -1,4 +1,3 @@
-
 import 'package:test/test.dart';
 import '../lib/service/lms_system.dart';
 
@@ -41,5 +40,18 @@ void main() {
       ),
       throwsException,
     );
+  });
+
+// test for  Enroll a student in a course
+
+  test(' Enroll a student in a course', () {
+    final lms = LmsSystem();
+
+    lms.addStudent(studentId: 'S1', studentName: 'Devit');
+    lms.addCourse(courseId: 'C1', courseName: 'Dart');
+
+    lms.enrollStudent('S1', "C1");
+
+    expect(lms.courses.first.studentIds, contains("S1"));
   });
 }

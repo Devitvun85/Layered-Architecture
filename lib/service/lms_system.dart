@@ -67,4 +67,24 @@ class LmsSystem {
     }
     return null;
   }
+    // Enroll a student in a course
+  void enrollStudent(String studentId, String courseId) {
+    //check student
+    Student? student = _findStudentOrNull(studentId);
+    if (student == null) {
+      throw Exception('Student $student not found');
+    }
+    //check course
+    Course? course = _findCourseOrNull(courseId);
+    if (course == null) {
+      throw Exception('coure $course not found');
+    }
+    //check the student is not enrolled yet
+    if (course.studentIds.contains(studentId)) {
+      throw Exception(
+        'Student $studentId is already enroll in course $courseId',
+      );
+    }
+    course.studentIds.add(studentId);
+  }
 }

@@ -1,90 +1,170 @@
 import '../model/course.dart';
 import '../model/student.dart';
+import '../model/course_result.dart';
 
 class LmsSystem {
   final List<Student> students = [];
   final List<Course> courses = [];
+  final List<CourseResult> results = [];
 
-  void addStudent({required String studentId, required String studentName}) {
-    // ! Student shall not exist already
-    Student? student = _findStudentOrNull(studentId);
+  // Add a student
+  void addStudent({
+    required String studentID,
+    required String studentName,
+  }) {
+    Student? student = _findStudentOrNull(studentID);
+
     if (student != null) {
-      throw Exception('Student $student already exists');
+      throw Exception('Student $studentID already exists');
     }
 
-    students.add(Student(id: studentId, name: studentName));
+    students.add(
+      Student(id: studentID, name: studentName),
+    );
   }
 
-  void removeStudent({required String studentId}) {
-    Student? student = _findStudentOrNull(studentId);
-    if (student == null) {
-      throw Exception('Student $studentId not found');
-    }
-    // 1- Remove student from the students list
-    students.removeWhere((student) => student.id == studentId);
-  }
-
-  Student? _findStudentOrNull(String studentId) {
-    for (Student s in students) {
-      if (s.id == studentId) {
-        return s;
+  // Find a student by ID
+  Student? _findStudentOrNull(String studentID) {
+    for (Student student in students) {
+      if (student.id == studentID) {
+        return student;
       }
     }
-    return null; // not found
+
+    return null;
   }
 
-  void addCourse({required String courseId, required String courseName}) {
+  // Remove a student and all their related data
+  void removeStudent({required String studentID}) {
+    Student? student = _findStudentOrNull(studentID);
+
+    if (student == null) {
+      throw Exception('Student $studentID not found');
+    }
+
+    // Remove the student from every course
+    for (Course course in courses) {
+      course.studentIds.remove(studentID);
+    }
+
+    // Remove all results belonging to this student
+    results.removeWhere(
+      (result) => result.studentID == studentID,
+    );
+
+    // Remove the student
+    students.removeWhere(
+      (student) => student.id == studentID,
+    );
+  }
+
+  // Add a course
+  void addCourse({
+    required String courseId,
+    required String courseName,
+  }) {
     Course? course = _findCourseOrNull(courseId);
+
     if (course != null) {
-      throw Exception("Course $course is already exist ");
+      throw Exception('Course $courseId already exists');
     }
-    courses.add(Course(id: courseId, name: courseName));
+
+    courses.add(
+      Course(id: courseId, name: courseName),
+    );
   }
 
+  // Find a course by ID
   Course? _findCourseOrNull(String courseId) {
-    for (Course c in courses) {
-      if (c.id == courseId) {
-        return c;
+    for (Course course in courses) {
+      if (course.id == courseId) {
+        return course;
       }
     }
+
     return null;
   }
 
+  // Remove a course and its results
   void removeCourse({required String courseID}) {
-    Course? course = _findCourse(courseID);
+    Course? course = _findCourseOrNull(courseID);
+
     if (course == null) {
-      throw Exception("This $course is not found");
+      throw Exception('Course $courseID not found');
     }
-    courses.removeWhere((course) => course.id == courseID);
-    ;
+
+    // Remove all results belonging to this course
+    results.removeWhere(
+      (result) => result.courseId == courseID,
+    );
+
+    // Remove the course
+    courses.removeWhere(
+      (course) => course.id == courseID,
+    );
   }
 
-  Course? _findCourse(String courseID) {
-    for (Course c in courses) {
-      if (c.id == courseID) {
-        return c;
-      }
-    }
-    return null;
-  }
-    // Enroll a student in a course
-  void enrollStudent(String studentId, String courseId) {
-    //check student
-    Student? student = _findStudentOrNull(studentId);
+  // Enroll a student in a course
+  void enrollStudent(String studentID, String courseId) {
+    // Check that the student exists
+    Student? student = _findStudentOrNull(studentID);
+
     if (student == null) {
-      throw Exception('Student $student not found');
+      throw Exception('Student $studentID not found');
     }
-    //check course
+
+    // Check that the course exists
     Course? course = _findCourseOrNull(courseId);
+
     if (course == null) {
-      throw Exception('coure $course not found');
+      throw Exception('Course $courseId not found');
     }
-    //check the student is not enrolled yet
-    if (course.studentIds.contains(studentId)) {
+
+    // Check that the student is not already enrolled
+    if (course.studentIds.contains(studentID)) {
       throw Exception(
-        'Student $studentId is already enroll in course $courseId',
+        'Student $studentID is already enrolled in course $courseId',
       );
     }
-    course.studentIds.add(studentId);
+
+    // Add the enrollment
+    course.studentIds.add(studentID);
+  }
+
+  // Remove a student from a course
+  void discardStudentFromCourse(
+    String studentID,
+    String courseId,
+  ) {
+    // Check that the student exists
+    Student? student = _findStudentOrNull(studentID);
+
+    if (student == null) {
+      throw Exception('Student $studentID not found');
+    }
+
+    // Check that the course exists
+    Course? course = _findCourseOrNull(courseId);
+
+    if (course == null) {
+      throw Exception('Course $courseId not found');
+    }
+
+    // Check that the student is enrolled
+    if (!course.studentIds.contains(studentID)) {
+      throw Exception(
+        'Student $studentID is not enrolled in course $courseId',
+      );
+    }
+
+    // Remove the enrollment
+    course.studentIds.remove(studentID);
+
+    // Remove this student's result for this course
+    results.removeWhere(
+      (result) =>
+          result.studentID == studentID &&
+          result.courseId == courseId,
+    );
   }
 }
